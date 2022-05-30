@@ -285,7 +285,7 @@ if __name__ == "__main__":
 
     file_path = args.file_path
     save_dir = args.save_dir
-    visualize = args.visualize
+    
     # get filename of video
     _, vid_file_name = os.path.split(file_path)
     # get opencv video object

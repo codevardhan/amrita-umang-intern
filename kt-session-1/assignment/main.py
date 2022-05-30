@@ -53,7 +53,7 @@ def center_crop(img, dim):
     crop_height = dim[1] if dim[1] < img.shape[0] else img.shape[0]
     mid_x, mid_y = int(width / 2), int(height / 2)
     cw2, ch2 = int(crop_width / 2), int(crop_height / 2)
-    crop_img = img[mid_y - ch2 : mid_y + ch2, mid_x - cw2 : mid_x + cw2]
+    crop_img = img[mid_y - ch2: mid_y + ch2, mid_x - cw2: mid_x + cw2]
     return crop_img
 
 
@@ -65,7 +65,7 @@ def get_video_details(filename, video):
         video (VideoCapture): An opencv videocapture object that contains the video file
 
     Returns:
-        _type_: A dictionary that contains video summary details
+        dict: A dictionary that contains video summary details
     """
 
     # get video properties using the video filename. (use splittext to remove extension)
@@ -107,7 +107,7 @@ def crop_video(file_path, filename, save_dir, fps):
         fps (float): The frames per second of the video
 
     Returns:
-        _type_: _description_
+        string: path of the output video file
     """
 
     video = cv2.VideoCapture(file_path)
@@ -125,7 +125,7 @@ def crop_video(file_path, filename, save_dir, fps):
     return output_path
 
 
-def get_pose_details(file_path, visualize):
+def get_pose_details(file_path):
     """This function gets pose details from mediapipe
 
     Args:
@@ -160,32 +160,17 @@ def get_pose_details(file_path, visualize):
 
             for i in range(23):
                 pose_x_frame.append(
-                    round(pose_results.pose_landmarks.landmark[i].x * image_width, 2)
+                    round(
+                        pose_results.pose_landmarks.landmark[i].x * image_width, 2)
                 )
                 pose_y_frame.append(
-                    round(pose_results.pose_landmarks.landmark[i].y * image_height, 2)
+                    round(
+                        pose_results.pose_landmarks.landmark[i].y * image_height, 2)
                 )
             # print(pose_results.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x * image_width)
 
             pose_x.append(pose_x_frame)
             pose_y.append(pose_y_frame)
-
-            # visualizing the pose analysis
-            if visualize:
-                mp_drawing = mp.solutions.drawing_utils
-                mp_drawing_styles = mp.solutions.drawing_styles
-                image.flags.writeable = True
-                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                mp_drawing.draw_landmarks(
-                    image,
-                    pose_results.pose_landmarks,
-                    mp_pose.POSE_CONNECTIONS,
-                    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style(),
-                )
-                cv2.imshow("MediaPipe Pose", cv2.flip(image, 1))
-                if cv2.waitKey(5) & 0xFF == 27:
-                    break
-
     cap.release()
 
     pose_dict = {}
@@ -195,7 +180,7 @@ def get_pose_details(file_path, visualize):
     return pose_dict
 
 
-def get_hand_details(file_path, visualize):
+def get_hand_details(file_path):
     """This function generates the hand tracking with mediapipe functions
 
     Args:
@@ -241,17 +226,21 @@ def get_hand_details(file_path, visualize):
                 for i in range(21):
                     if count == 1:
                         hand1_x_frame.append(
-                            round(hand_landmarks.landmark[i].x * image_width, 2)
+                            round(
+                                hand_landmarks.landmark[i].x * image_width, 2)
                         )
                         hand1_y_frame.append(
-                            round(hand_landmarks.landmark[i].y * image_height, 2)
+                            round(
+                                hand_landmarks.landmark[i].y * image_height, 2)
                         )
                     else:
                         hand2_x_frame.append(
-                            round(hand_landmarks.landmark[i].x * image_width, 2)
+                            round(
+                                hand_landmarks.landmark[i].x * image_width, 2)
                         )
                         hand2_y_frame.append(
-                            round(hand_landmarks.landmark[i].y * image_height, 2)
+                            round(
+                                hand_landmarks.landmark[i].y * image_height, 2)
                         )
                 # inserting NaN values for the missing hand coordinates
                 if len(hand_results.multi_hand_landmarks) == 1:
@@ -262,26 +251,6 @@ def get_hand_details(file_path, visualize):
             hand1_y.append(hand1_y_frame)
             hand2_x.append(hand2_x_frame)
             hand2_y.append(hand2_y_frame)
-
-            # visualize hands outlines
-            if visualize:
-                mp_drawing = mp.solutions.drawing_utils
-                mp_drawing_styles = mp.solutions.drawing_styles
-                image.flags.writeable = True
-                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                if hand_results.multi_hand_landmarks:
-                    for hand_landmarks in hand_results.multi_hand_landmarks:
-                        mp_drawing.draw_landmarks(
-                            image,
-                            hand_landmarks,
-                            mp_hands.HAND_CONNECTIONS,
-                            mp_drawing_styles.get_default_hand_landmarks_style(),
-                            mp_drawing_styles.get_default_hand_connections_style(),
-                        )
-
-                cv2.imshow("MediaPipe Hands", cv2.flip(image, 1))
-                if cv2.waitKey(5) & 0xFF == 27:
-                    break
     cap.release()
 
     hand_dict = {}
@@ -312,13 +281,6 @@ if __name__ == "__main__":
         help="path of directory to save video and pose files. (defaults to current directory)",
     )
 
-    # argument to take in path of directory to save video and pose files. (defaults to current directory)
-    parser.add_argument(
-        "--visualize",
-        type=bool,
-        default=False,
-        help="parameter to determine whether to visualize the tracking of pose and hands",
-    )
     args = parser.parse_args()
 
     file_path = args.file_path
@@ -331,27 +293,22 @@ if __name__ == "__main__":
 
     # 4 modules for getting metadata, cropping and getting pose, hand details from video
     video_summary = get_video_details(vid_file_name, video)
-    rgb_path = crop_video(file_path, vid_file_name, save_dir, video_summary["fps"])
-    pose_dict = get_pose_details(file_path, visualize)
-    hand_dict = get_hand_details(file_path, visualize)
+    rgb_path = crop_video(file_path, vid_file_name,
+                          save_dir, video_summary["fps"])
+    pose_dict = get_pose_details(file_path)
+    hand_dict = get_hand_details(file_path)
 
     pose_dict.update(hand_dict)
 
     # Writing to <filename>.json file
-    pose_path = os.path.join(save_dir, f"{os.path.splitext(vid_file_name)[0]}.json")
+    pose_path = os.path.join(
+        save_dir, f"{os.path.splitext(vid_file_name)[0]}.json")
     with open(pose_path, "w") as f:
         f.write(json.dumps(pose_dict))
 
     # adding extra details to the video summary
     video_summary["rgb_path"] = rgb_path
     video_summary["pose_path"] = pose_path
-
-    # saving a csv file
-    csv_path = os.path.join(save_dir, f"{os.path.splitext(vid_file_name)[0]}.csv")
-
-    with open(csv_path, "w") as f:
-        for key in video_summary.keys():
-            f.write("%s,%s\n" % (key, video_summary[key]))
 
     # printing to stdout
     print("============= VIDEO SUMMARY =============")

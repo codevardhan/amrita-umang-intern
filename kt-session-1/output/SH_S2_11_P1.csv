@@ -1,0 +1,11 @@
+video_path,../../data/task1_vids/SH_S2_11_P1.mp4
+env,home
+signer_id,2
+gloss_id,11
+position,P1
+num_of_frames,262
+fps,30.0
+height,320
+width,320
+rgb_path,../output/SH_S2_11_P1.mp4
+pose_path,../output/SH_S2_11_P1.json
